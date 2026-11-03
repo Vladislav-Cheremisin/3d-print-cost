@@ -157,6 +157,14 @@ export function CalculationResult() {
           />
         )}
 
+        {resultRub.minPriceApplied && (
+          <Alert color="blue" variant="light">
+            Применена минимальная цена продажи: расчётная{' '}
+            {formatMoney(toSelected(resultRub.priceWithMarkup), currency)} ниже
+            порога {formatMoney(toSelected(state.minSalePrice), currency)}
+          </Alert>
+        )}
+
         <Paper
           p="md"
           radius="md"
@@ -181,7 +189,7 @@ export function CalculationResult() {
                   'light-dark(var(--mantine-color-teal-8), var(--mantine-color-teal-3))',
               }}
             >
-              {formatMoney(toSelected(resultRub.priceWithMarkup), currency)}
+              {formatMoney(toSelected(resultRub.finalPrice), currency)}
             </Text>
           </Group>
         </Paper>

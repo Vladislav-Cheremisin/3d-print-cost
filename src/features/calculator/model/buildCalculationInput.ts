@@ -36,5 +36,6 @@ export function buildCalculationInput(
     equipmentLifetimeHours: state.equipmentLifetimeHours,
     extraCosts: state.extraCosts,
     markupPercent: state.markupPercent,
+    minSalePrice: state.minSalePrice,
   };
 }

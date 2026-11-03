@@ -299,13 +299,21 @@ export function CalculatorForm() {
 
         <Divider />
 
-        <SimpleGrid cols={{ base: 1, sm: 2 }}>
+        <SimpleGrid cols={{ base: 1, sm: 3 }}>
           <NumberInput
             label="Наценка, %"
             min={0}
             max={1000}
             value={state.markupPercent}
             onChange={(v) => setField('markupPercent', Number(v) || 0)}
+          />
+          <NumberInput
+            label="Мин. цена продажи, ₽"
+            description="0 — без ограничения"
+            min={0}
+            value={state.minSalePrice || ''}
+            placeholder="Например, 100"
+            onChange={(v) => setField('minSalePrice', Number(v) || 0)}
           />
           <Select
             label="Валюта"

@@ -40,6 +40,8 @@ export interface CalculationInput {
   extraCosts: ExtraCost[];
   /** Наценка, % */
   markupPercent: number;
+  /** Минимальная стоимость продажи (0 — не ограничена) */
+  minSalePrice: number;
 }
 
 /** Разбивка результата расчёта по статьям */
@@ -58,4 +60,8 @@ export interface CalculationResult {
   markupAmount: number;
   /** Цена для клиента (себестоимость + наценка) */
   priceWithMarkup: number;
+  /** Итоговая цена с учётом минимальной стоимости продажи */
+  finalPrice: number;
+  /** true, если сработало ограничение минимальной цены */
+  minPriceApplied: boolean;
 }

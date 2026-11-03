@@ -33,6 +33,8 @@ export interface CalculatorState {
   // --- Прочее ---
   extraCosts: ExtraCost[];
   markupPercent: number;
+  /** Минимальная стоимость продажи, ₽ (0 — не ограничена) */
+  minSalePrice: number;
   currency: CurrencyCode;
 
   // --- Действия ---
@@ -73,6 +75,7 @@ export const useCalculatorStore = create<CalculatorState>()(
 
       extraCosts: [],
       markupPercent: 0,
+      minSalePrice: 0,
       currency: 'RUB',
 
       setField: (field, value) => set({ [field]: value }),
@@ -120,6 +123,7 @@ export const useCalculatorStore = create<CalculatorState>()(
         includeDepreciation: state.includeDepreciation,
         equipmentLifetimeHours: state.equipmentLifetimeHours,
         accessoryQuantities: state.accessoryQuantities,
+        minSalePrice: state.minSalePrice,
         currency: state.currency,
         materialId: state.materialId,
         filamentPricePerKg: state.filamentPricePerKg,

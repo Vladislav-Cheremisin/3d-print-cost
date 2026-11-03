@@ -17,6 +17,7 @@ const baseInput: CalculationInput = {
   equipmentLifetimeHours: 5000,
   extraCosts: [],
   markupPercent: 0,
+  minSalePrice: 0,
 };
 
 describe('calculateCost', () => {
@@ -135,6 +136,7 @@ describe('calculateCost', () => {
       equipmentLifetimeHours: 4000,
       extraCosts: [{ id: '1', label: 'Упаковка', amount: 100 }],
       markupPercent: 30,
+      minSalePrice: 0,
     });
     // материал: 120/1000 × 2500 × 1.2 = 360
     expect(result.material).toBe(360);
@@ -172,6 +174,30 @@ describe('calculateCost', () => {
       total: 0,
       markupAmount: 0,
       priceWithMarkup: 0,
+      finalPrice: 0,
+      minPriceApplied: false,
     });
+  });
+
+  it('поднимает цену до минимальной, если расчётная ниже', () => {
+    // материал 200 ₽, минимум 500 ₽
+    const result = calculateCost({ ...baseInput, minSalePrice: 500 });
+    expect(result.priceWithMarkup).toBe(200);
+    expect(result.minPriceApplied).toBe(true);
+    expect(result.finalPrice).toBe(500);
+    // себестоимость не меняется
+    expect(result.total).toBe(200);
+  });
+
+  it('не трогает цену, если она выше минимальной', () => {
+    const result = calculateCost({ ...baseInput, minSalePrice: 100 });
+    expect(result.minPriceApplied).toBe(false);
+    expect(result.finalPrice).toBe(200);
+  });
+
+  it('минимальная цена 0 отключает ограничение', () => {
+    const result = calculateCost(baseInput);
+    expect(result.minPriceApplied).toBe(false);
+    expect(result.finalPrice).toBe(result.priceWithMarkup);
   });
 });

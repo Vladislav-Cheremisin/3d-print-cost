@@ -55,6 +55,11 @@ export function calculateCost(input: CalculationInput): CalculationResult {
 
   const total = roundTo(material + electricity + depreciation + extras);
   const markupAmount = roundTo((total * sane(input.markupPercent)) / 100);
+  const priceWithMarkup = roundTo(total + markupAmount);
+
+  // Минимальная стоимость продажи
+  const minSalePrice = sane(input.minSalePrice);
+  const minPriceApplied = minSalePrice > 0 && priceWithMarkup < minSalePrice;
 
   return {
     material,
@@ -63,6 +68,8 @@ export function calculateCost(input: CalculationInput): CalculationResult {
     extras,
     total,
     markupAmount,
-    priceWithMarkup: roundTo(total + markupAmount),
+    priceWithMarkup,
+    finalPrice: minPriceApplied ? roundTo(minSalePrice) : priceWithMarkup,
+    minPriceApplied,
   };
 }
