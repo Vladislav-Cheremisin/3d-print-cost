@@ -3,8 +3,8 @@ import {
   Button,
   FileInput,
   Group,
+  NumberInput,
   Stack,
-  Text,
   TextInput,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
@@ -19,6 +19,7 @@ function showError(message: string) {
 
 export function ModelImportSection() {
   const materialId = useCalculatorStore((s) => s.materialId);
+  const infillPercent = useCalculatorStore((s) => s.infillPercent);
   const setField = useCalculatorStore((s) => s.setField);
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,14 +30,22 @@ export function ModelImportSection() {
   const handleFile = async (file: File | null) => {
     if (!file) return;
     try {
-      const result = await importModelFile(file, density);
+      const result = await importModelFile(file, density, infillPercent / 100);
       setField('partWeightGrams', result.weightGrams);
-      setField('printTimeHours', null); // время переоценится по весу
+      // из слайсера время точное — берём; иначе сбрасываем для переоценки
+      setField('printTimeHours', result.printTimeHours);
       notifications.show({
         color: 'teal',
-        title: 'Модель загружена',
-        message: `${result.fileName}: ${result.triangleCount} треугольников, ` +
-          `объём ${Math.round(result.volumeMm3)} мм³, вес ≈ ${result.weightGrams} г`,
+        title: result.fromSlicer
+          ? 'Модель загружена (данные слайсера)'
+          : 'Модель загружена',
+        message: result.fromSlicer
+          ? `${result.fileName}: точный вес ${result.weightGrams} г` +
+            (result.printTimeHours
+              ? `, время ${result.printTimeHours} ч`
+              : '')
+          : `${result.fileName}: объём ${Math.round(result.volumeMm3)} мм³, ` +
+            `вес ≈ ${result.weightGrams} г (заполнение ${infillPercent}%)`,
       });
     } catch (error) {
       showError(error instanceof Error ? error.message : 'Неизвестная ошибка');
@@ -101,10 +110,15 @@ export function ModelImportSection() {
           rightSectionWidth={90}
         />
       </Group>
-      <Text size="xs" c="dimmed">
-        Вес из файла — оценка по объёму модели с учётом заполнения ~35%.
-        Плотность берётся из выбранного типа пластика.
-      </Text>
+      <NumberInput
+        label="Заполнение (infill), %"
+        description="Для оценки веса из файла; если 3MF сохранён слайсером — вес и время берутся точные из файла"
+        min={5}
+        max={100}
+        w={220}
+        value={infillPercent}
+        onChange={(v) => setField('infillPercent', Number(v) || 35)}
+      />
     </Stack>
   );
 }

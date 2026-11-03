@@ -4,8 +4,12 @@ import { parseStl } from './parseStl';
 
 export interface ModelImportResult extends MeshInfo {
   fileName: string;
-  /** Оценка веса, г (объём × плотность × доля заполнения) */
+  /** Вес детали, г — точный из слайсера либо оценка по объёму */
   weightGrams: number;
+  /** Время печати, ч — только если прочитано из файла слайсера */
+  printTimeHours: number | null;
+  /** true, если вес/время взяты из данных слайсера в 3MF (точные) */
+  fromSlicer: boolean;
 }
 
 /** Доля заполнения по умолчанию (стены + крышки + ~20% инфилла) */
@@ -24,7 +28,7 @@ export function estimateWeightGrams(
   return Math.round(grams * 10) / 10;
 }
 
-/** Разбирает файл модели и оценивает вес */
+/** Разбирает файл модели и определяет вес (и время, если есть данные слайсера) */
 export async function importModelFile(
   file: File,
   densityGCm3: number,
@@ -33,18 +37,46 @@ export async function importModelFile(
   const bytes = new Uint8Array(await file.arrayBuffer());
   const lower = file.name.toLowerCase();
 
-  let mesh: MeshInfo;
   if (lower.endsWith('.stl')) {
-    mesh = computeMeshVolume(parseStl(bytes));
-  } else if (lower.endsWith('.3mf')) {
-    mesh = computeMeshVolume(parse3mf(bytes));
-  } else {
-    throw new Error('Поддерживаются только файлы .stl и .3mf');
+    const mesh = computeMeshVolume(parseStl(bytes));
+    return {
+      ...mesh,
+      fileName: file.name,
+      weightGrams: estimateWeightGrams(mesh.volumeMm3, densityGCm3, fillFraction),
+      printTimeHours: null,
+      fromSlicer: false,
+    };
   }
 
-  return {
-    ...mesh,
-    fileName: file.name,
-    weightGrams: estimateWeightGrams(mesh.volumeMm3, densityGCm3, fillFraction),
-  };
+  if (lower.endsWith('.3mf')) {
+    const { triangles, slicer } = parse3mf(bytes);
+    const mesh = computeMeshVolume(triangles);
+
+    if (slicer?.weightGrams) {
+      // Точные данные слайсера: инфилл уже учтён в весе
+      return {
+        ...mesh,
+        fileName: file.name,
+        weightGrams: Math.round(slicer.weightGrams * 10) / 10,
+        printTimeHours: slicer.timeSeconds
+          ? Math.round((slicer.timeSeconds / 3600) * 100) / 100
+          : null,
+        fromSlicer: true,
+      };
+    }
+
+    // Голая модель: оценка по объёму; если инфилл есть в настройках — берём его
+    const effectiveFill = slicer?.infillPercent
+      ? Math.max(slicer.infillPercent / 100, 0.05)
+      : fillFraction;
+    return {
+      ...mesh,
+      fileName: file.name,
+      weightGrams: estimateWeightGrams(mesh.volumeMm3, densityGCm3, effectiveFill),
+      printTimeHours: null,
+      fromSlicer: false,
+    };
+  }
+
+  throw new Error('Поддерживаются только файлы .stl и .3mf');
 }

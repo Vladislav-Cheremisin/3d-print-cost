@@ -1,5 +1,5 @@
 // Тестовые фикстуры: куб 10×10×10 мм, объём 1000 мм³, 12 треугольников
-import { zipSync, strToU8 } from 'fflate';
+import { zipSync, strToU8, unzipSync } from 'fflate';
 
 /** Куб в виде 12 треугольников (2 на грань) */
 export const CUBE_TRIANGLES: [number, number, number][][] = (() => {
@@ -68,4 +68,26 @@ export function make3mf(): Uint8Array {
 <triangles>${triXml}</triangles>
 </mesh></object></resources></model>`;
   return zipSync({ '3D/3Dmodel.model': strToU8(xml) });
+}
+
+/** 3MF-проект слайсера: сетка + метаданные Bambu Studio / OrcaSlicer */
+export function make3mfSliced(): Uint8Array {
+  const base = make3mf();
+  // распакуем и дополним метаданными
+  // (файл маленький, проще собрать заново через fflate)
+  return zipSync({
+    '3D/3Dmodel.model': unzipSync(base)['3D/3Dmodel.model'],
+    'Metadata/slice_info.config': strToU8(
+      `<?xml version="1.0"?>
+<config><plate>
+<metadata key="index" value="1"/>
+<metadata key="prediction" value="3696"/>
+<filament id="1" type="PLA" used_m="4.52" used_g="14.30"/>
+<filament id="2" type="PLA" used_m="1.10" used_g="3.40"/>
+</plate></config>`,
+    ),
+    'Metadata/project_settings.config': strToU8(
+      JSON.stringify({ sparse_infill_density: '15%' }),
+    ),
+  });
 }

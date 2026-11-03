@@ -20,6 +20,8 @@ export interface CalculatorState {
   printTimeHours: number | null;
   isMulticolor: boolean;
   multicolorWastePercent: number;
+  /** Заполнение (infill), % — для оценки веса из файла модели */
+  infillPercent: number;
 
   // --- Электроэнергия ---
   includeElectricity: boolean;
@@ -65,6 +67,7 @@ export const useCalculatorStore = create<CalculatorState>()(
       printTimeHours: null,
       isMulticolor: false,
       multicolorWastePercent: 40,
+      infillPercent: 35,
 
       includeElectricity: true,
       electricityTariffPerKwh: 6,
@@ -118,6 +121,7 @@ export const useCalculatorStore = create<CalculatorState>()(
       partialize: (state) => ({
         printerId: state.printerId,
         nozzleDiameter: state.nozzleDiameter,
+        infillPercent: state.infillPercent,
         electricityTariffPerKwh: state.electricityTariffPerKwh,
         includeElectricity: state.includeElectricity,
         includeDepreciation: state.includeDepreciation,

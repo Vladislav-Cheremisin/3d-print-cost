@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { make3mf, makeAsciiStl, makeBinaryStl, CUBE_TRIANGLES } from './fixtures';
+import { make3mf, make3mfSliced, makeAsciiStl, makeBinaryStl, CUBE_TRIANGLES } from './fixtures';
 import { importFromMakerWorld } from './importFromUrl';
 import { estimateWeightGrams } from './importModel';
 import { computeMeshVolume } from './meshVolume';
@@ -41,9 +41,20 @@ describe('parseStl', () => {
 
 describe('parse3mf', () => {
   it('разбирает 3MF и считает объём 1000 мм³', () => {
-    const mesh = computeMeshVolume(parse3mf(make3mf()));
+    const { triangles, slicer } = parse3mf(make3mf());
+    const mesh = computeMeshVolume(triangles);
     expect(mesh.volumeMm3).toBeCloseTo(1000, 5);
     expect(mesh.triangleCount).toBe(12);
+    expect(slicer).toBeNull();
+  });
+
+  it('извлекает данные слайсера: вес по катушкам, время, инфилл', () => {
+    const { slicer } = parse3mf(make3mfSliced());
+    expect(slicer).not.toBeNull();
+    // 14.30 + 3.40 г по двум катушкам
+    expect(slicer!.weightGrams).toBeCloseTo(17.7, 5);
+    expect(slicer!.timeSeconds).toBe(3696);
+    expect(slicer!.infillPercent).toBe(15);
   });
 
   it('бросает ошибку, если это не ZIP', () => {
@@ -61,6 +72,37 @@ describe('estimateWeightGrams', () => {
 
   it('100% заполнение — полный вес объёма', () => {
     expect(estimateWeightGrams(1000, 1.24, 1)).toBe(1.2);
+  });
+});
+
+describe('importModelFile', () => {
+  function fakeFile(name: string, bytes: Uint8Array): File {
+    return {
+      name,
+      arrayBuffer: () =>
+        Promise.resolve(
+          bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length),
+        ),
+    } as File;
+  }
+
+  it('3MF из слайсера: точный вес и время из метаданных', async () => {
+    const { importModelFile } = await import('./importModel');
+    const result = await importModelFile(
+      fakeFile('model.3mf', make3mfSliced()),
+      1.24,
+    );
+    expect(result.fromSlicer).toBe(true);
+    expect(result.weightGrams).toBeCloseTo(17.7, 5);
+    expect(result.printTimeHours).toBeCloseTo(1.03, 2);
+  });
+
+  it('голая 3MF: оценка по объёму, fromSlicer = false', async () => {
+    const { importModelFile } = await import('./importModel');
+    const result = await importModelFile(fakeFile('model.3mf', make3mf()), 1.24);
+    expect(result.fromSlicer).toBe(false);
+    expect(result.printTimeHours).toBeNull();
+    expect(result.weightGrams).toBe(0.4); // 1000 мм³ × 1.24 × 0.35
   });
 });
 
