@@ -1,12 +1,12 @@
 [
-  { "id": "pla", "name": "PLA", "defaultPricePerKgRub": 1800 },
-  { "id": "petg", "name": "PETG", "defaultPricePerKgRub": 2000 },
-  { "id": "abs", "name": "ABS", "defaultPricePerKgRub": 2000 },
-  { "id": "asa", "name": "ASA", "defaultPricePerKgRub": 2500 },
-  { "id": "tpu", "name": "TPU", "defaultPricePerKgRub": 3200 },
-  { "id": "pc", "name": "PC", "defaultPricePerKgRub": 3800 },
-  { "id": "pa", "name": "PA (нейлон)", "defaultPricePerKgRub": 4800 },
-  { "id": "pla-cf", "name": "PLA-CF (карбон)", "defaultPricePerKgRub": 4500 },
-  { "id": "hips", "name": "HIPS", "defaultPricePerKgRub": 2200 },
-  { "id": "other", "name": "Другой", "defaultPricePerKgRub": 2000 }
+  { "id": "pla", "name": "PLA", "defaultPricePerKgRub": 1800, "densityGCm3": 1.24, "maxFlowMm3s": 16 },
+  { "id": "petg", "name": "PETG", "defaultPricePerKgRub": 2000, "densityGCm3": 1.27, "maxFlowMm3s": 11 },
+  { "id": "abs", "name": "ABS", "defaultPricePerKgRub": 2000, "densityGCm3": 1.04, "maxFlowMm3s": 13 },
+  { "id": "asa", "name": "ASA", "defaultPricePerKgRub": 2500, "densityGCm3": 1.07, "maxFlowMm3s": 13 },
+  { "id": "tpu", "name": "TPU", "defaultPricePerKgRub": 3200, "densityGCm3": 1.21, "maxFlowMm3s": 3.5 },
+  { "id": "pc", "name": "PC", "defaultPricePerKgRub": 3800, "densityGCm3": 1.2, "maxFlowMm3s": 8 },
+  { "id": "pa", "name": "PA (нейлон)", "defaultPricePerKgRub": 4800, "densityGCm3": 1.14, "maxFlowMm3s": 10 },
+  { "id": "pla-cf", "name": "PLA-CF (карбон)", "defaultPricePerKgRub": 4500, "densityGCm3": 1.28, "maxFlowMm3s": 10 },
+  { "id": "hips", "name": "HIPS", "defaultPricePerKgRub": 2200, "densityGCm3": 1.05, "maxFlowMm3s": 12 },
+  { "id": "other", "name": "Другой", "defaultPricePerKgRub": 2000, "densityGCm3": 1.2, "maxFlowMm3s": 10 }
 ]

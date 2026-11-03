@@ -16,7 +16,11 @@ import {
   type CurrencyCode,
   type ExchangeRates,
 } from '@/entities/currency';
-import { buildCalculationInput, useCalculatorStore } from '@/features/calculator';
+import {
+  buildCalculationInput,
+  estimatePrintTimeHours,
+  useCalculatorStore,
+} from '@/features/calculator';
 import { FALLBACK_RATES, fetchExchangeRates } from '@/shared/api/exchangeRates';
 
 function formatMoney(amount: number, currency: CurrencyCode): string {
@@ -61,11 +65,30 @@ export function CalculationResult() {
     };
   }, []);
 
-  // Расчёт ведётся в RUB (справочники в рублях), отображаем в выбранной валюте
-  const resultRub = useMemo(
-    () => calculateCost(buildCalculationInput(state)),
-    [state],
+  // Время из слайсера приоритетно; иначе — ориентировочная оценка
+  const estimatedTime = useMemo(
+    () =>
+      estimatePrintTimeHours({
+        printerId: state.printerId,
+        materialId: state.materialId,
+        nozzleDiameter: state.nozzleDiameter,
+        partWeightGrams: state.partWeightGrams ?? 0,
+      }),
+    [
+      state.printerId,
+      state.materialId,
+      state.nozzleDiameter,
+      state.partWeightGrams,
+    ],
   );
+  const effectiveTime = state.printTimeHours ?? estimatedTime;
+
+  // Расчёт ведётся в RUB (справочники в рублях), отображаем в выбранной валюте
+  const resultRub = useMemo(() => {
+    const input = buildCalculationInput(state);
+    input.printTimeHours = effectiveTime;
+    return calculateCost(input);
+  }, [state, effectiveTime]);
 
   const toSelected = (amount: number) =>
     convertCurrency(amount, 'RUB', state.currency, rates);
@@ -78,12 +101,21 @@ export function CalculationResult() {
         <Title order={3}>Себестоимость</Title>
 
         {(state.includeElectricity || state.includeDepreciation) &&
-          !state.printTimeHours && (
+          !effectiveTime && (
             <Alert color="yellow" variant="light" title="Нет времени печати">
-              Укажите время печати из слайсера — без него электроэнергия и
-              амортизация не учитываются в расчёте.
+              Укажите время из слайсера или вес детали (для ориентировочной
+              оценки) — иначе электроэнергия и амортизация не учитываются.
             </Alert>
           )}
+
+        {effectiveTime !== null && effectiveTime > 0 && (
+          <Text size="xs" c="dimmed">
+            Время печати:{' '}
+            {state.printTimeHours
+              ? `${state.printTimeHours} ч (из слайсера)`
+              : `≈ ${effectiveTime} ч (оценка по весу, материалу и соплу)`}
+          </Text>
+        )}
 
         <Row label="Материал" amount={toSelected(resultRub.material)} currency={currency} />
         {resultRub.electricity > 0 && (

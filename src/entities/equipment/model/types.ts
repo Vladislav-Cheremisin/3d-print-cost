@@ -9,6 +9,8 @@ export interface Printer {
   priceRub: number;
   /** Ориентировочный ресурс механики до капитального обслуживания, часов */
   lifetimeHours: number;
+  /** Предел объёмного расхода хотэнда, мм³/с */
+  maxFlowMm3s: number;
   /** Поддержка многоцветной печати из коробки (AMS/AMS lite) */
   multicolorCapable: boolean;
 }

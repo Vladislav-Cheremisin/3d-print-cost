@@ -1,16 +1,142 @@
 [
-  { "id": "bambu-a1-mini", "name": "Bambu Lab A1 mini", "brand": "Bambu Lab", "avgPowerWatts": 80, "priceRub": 30000, "lifetimeHours": 6000, "multicolorCapable": true },
-  { "id": "bambu-a1", "name": "Bambu Lab A1", "brand": "Bambu Lab", "avgPowerWatts": 95, "priceRub": 45000, "lifetimeHours": 6000, "multicolorCapable": true },
-  { "id": "bambu-p1s", "name": "Bambu Lab P1S", "brand": "Bambu Lab", "avgPowerWatts": 100, "priceRub": 72000, "lifetimeHours": 8000, "multicolorCapable": true },
-  { "id": "bambu-p1s-combo", "name": "Bambu Lab P1S Combo", "brand": "Bambu Lab", "avgPowerWatts": 100, "priceRub": 100000, "lifetimeHours": 8000, "multicolorCapable": true },
-  { "id": "bambu-x1c", "name": "Bambu Lab X1 Carbon", "brand": "Bambu Lab", "avgPowerWatts": 115, "priceRub": 140000, "lifetimeHours": 8000, "multicolorCapable": true },
-  { "id": "creality-ender3-v3-ke", "name": "Creality Ender-3 V3 KE", "brand": "Creality", "avgPowerWatts": 120, "priceRub": 28000, "lifetimeHours": 3000, "multicolorCapable": false },
-  { "id": "creality-k1", "name": "Creality K1", "brand": "Creality", "avgPowerWatts": 150, "priceRub": 55000, "lifetimeHours": 4000, "multicolorCapable": false },
-  { "id": "creality-k1c", "name": "Creality K1C", "brand": "Creality", "avgPowerWatts": 150, "priceRub": 69000, "lifetimeHours": 4000, "multicolorCapable": false },
-  { "id": "creality-k1-max", "name": "Creality K1 Max", "brand": "Creality", "avgPowerWatts": 180, "priceRub": 85000, "lifetimeHours": 4000, "multicolorCapable": false },
-  { "id": "prusa-mk4s", "name": "Original Prusa MK4S", "brand": "Prusa", "avgPowerWatts": 90, "priceRub": 110000, "lifetimeHours": 8000, "multicolorCapable": false },
-  { "id": "prusa-core-one", "name": "Original Prusa CORE One", "brand": "Prusa", "avgPowerWatts": 100, "priceRub": 130000, "lifetimeHours": 8000, "multicolorCapable": false },
-  { "id": "anycubic-kobra-3", "name": "Anycubic Kobra 3", "brand": "Anycubic", "avgPowerWatts": 110, "priceRub": 35000, "lifetimeHours": 3000, "multicolorCapable": true },
-  { "id": "elegoo-neptune-4", "name": "Elegoo Neptune 4", "brand": "Elegoo", "avgPowerWatts": 130, "priceRub": 27000, "lifetimeHours": 3000, "multicolorCapable": false },
-  { "id": "flashforge-adventurer-5m", "name": "FlashForge Adventurer 5M", "brand": "FlashForge", "avgPowerWatts": 140, "priceRub": 45000, "lifetimeHours": 4000, "multicolorCapable": false }
+  {
+    "id": "bambu-a1-mini",
+    "name": "Bambu Lab A1 mini",
+    "brand": "Bambu Lab",
+    "avgPowerWatts": 80,
+    "priceRub": 30000,
+    "lifetimeHours": 6000,
+    "multicolorCapable": true,
+    "maxFlowMm3s": 24
+  },
+  {
+    "id": "bambu-a1",
+    "name": "Bambu Lab A1",
+    "brand": "Bambu Lab",
+    "avgPowerWatts": 95,
+    "priceRub": 45000,
+    "lifetimeHours": 6000,
+    "multicolorCapable": true,
+    "maxFlowMm3s": 28
+  },
+  {
+    "id": "bambu-p1s",
+    "name": "Bambu Lab P1S",
+    "brand": "Bambu Lab",
+    "avgPowerWatts": 100,
+    "priceRub": 72000,
+    "lifetimeHours": 8000,
+    "multicolorCapable": true,
+    "maxFlowMm3s": 32
+  },
+  {
+    "id": "bambu-p1s-combo",
+    "name": "Bambu Lab P1S Combo",
+    "brand": "Bambu Lab",
+    "avgPowerWatts": 100,
+    "priceRub": 100000,
+    "lifetimeHours": 8000,
+    "multicolorCapable": true,
+    "maxFlowMm3s": 32
+  },
+  {
+    "id": "bambu-x1c",
+    "name": "Bambu Lab X1 Carbon",
+    "brand": "Bambu Lab",
+    "avgPowerWatts": 115,
+    "priceRub": 140000,
+    "lifetimeHours": 8000,
+    "multicolorCapable": true,
+    "maxFlowMm3s": 32
+  },
+  {
+    "id": "creality-ender3-v3-ke",
+    "name": "Creality Ender-3 V3 KE",
+    "brand": "Creality",
+    "avgPowerWatts": 120,
+    "priceRub": 28000,
+    "lifetimeHours": 3000,
+    "multicolorCapable": false,
+    "maxFlowMm3s": 20
+  },
+  {
+    "id": "creality-k1",
+    "name": "Creality K1",
+    "brand": "Creality",
+    "avgPowerWatts": 150,
+    "priceRub": 55000,
+    "lifetimeHours": 4000,
+    "multicolorCapable": false,
+    "maxFlowMm3s": 30
+  },
+  {
+    "id": "creality-k1c",
+    "name": "Creality K1C",
+    "brand": "Creality",
+    "avgPowerWatts": 150,
+    "priceRub": 69000,
+    "lifetimeHours": 4000,
+    "multicolorCapable": false,
+    "maxFlowMm3s": 30
+  },
+  {
+    "id": "creality-k1-max",
+    "name": "Creality K1 Max",
+    "brand": "Creality",
+    "avgPowerWatts": 180,
+    "priceRub": 85000,
+    "lifetimeHours": 4000,
+    "multicolorCapable": false,
+    "maxFlowMm3s": 30
+  },
+  {
+    "id": "prusa-mk4s",
+    "name": "Original Prusa MK4S",
+    "brand": "Prusa",
+    "avgPowerWatts": 90,
+    "priceRub": 110000,
+    "lifetimeHours": 8000,
+    "multicolorCapable": false,
+    "maxFlowMm3s": 15
+  },
+  {
+    "id": "prusa-core-one",
+    "name": "Original Prusa CORE One",
+    "brand": "Prusa",
+    "avgPowerWatts": 100,
+    "priceRub": 130000,
+    "lifetimeHours": 8000,
+    "multicolorCapable": false,
+    "maxFlowMm3s": 20
+  },
+  {
+    "id": "anycubic-kobra-3",
+    "name": "Anycubic Kobra 3",
+    "brand": "Anycubic",
+    "avgPowerWatts": 110,
+    "priceRub": 35000,
+    "lifetimeHours": 3000,
+    "multicolorCapable": true,
+    "maxFlowMm3s": 24
+  },
+  {
+    "id": "elegoo-neptune-4",
+    "name": "Elegoo Neptune 4",
+    "brand": "Elegoo",
+    "avgPowerWatts": 130,
+    "priceRub": 27000,
+    "lifetimeHours": 3000,
+    "multicolorCapable": false,
+    "maxFlowMm3s": 20
+  },
+  {
+    "id": "flashforge-adventurer-5m",
+    "name": "FlashForge Adventurer 5M",
+    "brand": "FlashForge",
+    "avgPowerWatts": 140,
+    "priceRub": 45000,
+    "lifetimeHours": 4000,
+    "multicolorCapable": false,
+    "maxFlowMm3s": 24
+  }
 ]

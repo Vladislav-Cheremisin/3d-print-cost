@@ -106,6 +106,7 @@ export function CalculatorForm() {
             />
             <NumberInput
               label="Время печати из слайсера, ч"
+              description="Пусто — оценим по весу, материалу и соплу"
               min={0}
               decimalScale={2}
               placeholder="Например, 8.5"

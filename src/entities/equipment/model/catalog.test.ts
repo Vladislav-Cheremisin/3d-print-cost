@@ -19,6 +19,7 @@ describe('справочник принтеров', () => {
       expect(p.avgPowerWatts).toBeGreaterThan(0);
       expect(p.priceRub).toBeGreaterThan(0);
       expect(p.lifetimeHours).toBeGreaterThan(0);
+      expect(p.maxFlowMm3s).toBeGreaterThan(0);
       expect(typeof p.multicolorCapable).toBe('boolean');
     }
   });
@@ -45,6 +46,8 @@ describe('справочник материалов', () => {
     for (const m of materials) {
       expect(m.name.length).toBeGreaterThan(0);
       expect(m.defaultPricePerKgRub).toBeGreaterThan(0);
+      expect(m.densityGCm3).toBeGreaterThan(0);
+      expect(m.maxFlowMm3s).toBeGreaterThan(0);
     }
   });
 });
