@@ -7,17 +7,20 @@ export function buildCalculationInput(
   state: CalculatorState,
 ): CalculationInput {
   const printer = printers.find((p) => p.id === state.printerId);
-  const selectedAccessories = accessories.filter((a) =>
-    state.accessoryIds.includes(a.id),
-  );
+  const selectedAccessories = accessories
+    .filter((a) => (state.accessoryQuantities[a.id] ?? 0) > 0)
+    .map((a) => ({ ...a, quantity: state.accessoryQuantities[a.id] }));
 
   const totalPowerWatts =
     (printer?.avgPowerWatts ?? 0) +
-    selectedAccessories.reduce((sum, a) => sum + a.avgPowerWatts, 0);
+    selectedAccessories.reduce(
+      (sum, a) => sum + a.avgPowerWatts * a.quantity,
+      0,
+    );
 
   const equipmentTotalCost =
     (printer?.priceRub ?? 0) +
-    selectedAccessories.reduce((sum, a) => sum + a.priceRub, 0);
+    selectedAccessories.reduce((sum, a) => sum + a.priceRub * a.quantity, 0);
 
   return {
     filamentPricePerKg: state.filamentPricePerKg,

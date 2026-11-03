@@ -198,23 +198,48 @@ export function CalculatorForm() {
                   )}
                 </SimpleGrid>
 
-                <MultiSelect
-                  label="Доп. оборудование (фены, сушилки и т.п.)"
-                  description="Их мощность и стоимость добавятся к расчёту"
-                  data={accessories.map((a) => ({
-                    value: a.id,
-                    label: `${a.name} · ~${a.avgPowerWatts} Вт`,
-                  }))}
-                  value={state.accessoryIds}
-                  onChange={(ids) =>
-                    setField(
-                      'accessoryIds',
-                      accessories
-                        .map((a) => a.id)
-                        .filter((id) => ids.includes(id)),
-                    )
-                  }
-                />
+                <div>
+                  <MultiSelect
+                    label="Доп. оборудование (фены, сушилки и т.п.)"
+                    description="Их мощность и стоимость добавятся к расчёту"
+                    data={accessories.map((a) => ({
+                      value: a.id,
+                      label: `${a.name} · ~${a.avgPowerWatts} Вт`,
+                    }))}
+                    value={Object.keys(state.accessoryQuantities)}
+                    onChange={(ids) =>
+                      state.setAccessories(
+                        accessories
+                          .map((a) => a.id)
+                          .filter((id) => ids.includes(id)),
+                      )
+                    }
+                  />
+                  {Object.keys(state.accessoryQuantities).length > 0 && (
+                    <SimpleGrid cols={{ base: 1, sm: 2 }} mt="xs">
+                      {Object.entries(state.accessoryQuantities).map(
+                        ([id, qty]) => {
+                          const accessory = accessories.find(
+                            (a) => a.id === id,
+                          );
+                          if (!accessory) return null;
+                          return (
+                            <NumberInput
+                              key={id}
+                              label={`${accessory.name}, шт.`}
+                              min={1}
+                              max={20}
+                              value={qty}
+                              onChange={(v) =>
+                                state.setAccessoryQuantity(id, Number(v) || 1)
+                              }
+                            />
+                          );
+                        },
+                      )}
+                    </SimpleGrid>
+                  )}
+                </div>
               </Stack>
             </Accordion.Panel>
           </Accordion.Item>

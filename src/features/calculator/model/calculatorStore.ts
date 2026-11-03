@@ -5,6 +5,9 @@ import type { CurrencyCode } from '@/entities/currency';
 
 export const NOZZLE_DIAMETERS = [0.2, 0.4, 0.6, 0.8] as const;
 
+/** Выбранное доп. оборудование: id позиции → количество */
+export type AccessoryQuantities = Record<string, number>;
+
 export interface CalculatorState {
   // --- Материал ---
   materialId: string;
@@ -25,7 +28,7 @@ export interface CalculatorState {
   // --- Амортизация ---
   includeDepreciation: boolean;
   equipmentLifetimeHours: number;
-  accessoryIds: string[];
+  accessoryQuantities: AccessoryQuantities;
 
   // --- Прочее ---
   extraCosts: ExtraCost[];
@@ -37,7 +40,9 @@ export interface CalculatorState {
     field: K,
     value: CalculatorState[K],
   ) => void;
-  toggleAccessory: (id: string) => void;
+  /** Устанавливает выбранные позиции оборудования (новые — с количеством 1) */
+  setAccessories: (ids: string[]) => void;
+  setAccessoryQuantity: (id: string, quantity: number) => void;
   addExtraCost: () => void;
   updateExtraCost: (id: string, patch: Partial<Omit<ExtraCost, 'id'>>) => void;
   removeExtraCost: (id: string) => void;
@@ -64,19 +69,27 @@ export const useCalculatorStore = create<CalculatorState>()(
 
       includeDepreciation: true,
       equipmentLifetimeHours: 5000,
-      accessoryIds: [],
+      accessoryQuantities: {},
 
       extraCosts: [],
       markupPercent: 0,
       currency: 'RUB',
 
       setField: (field, value) => set({ [field]: value }),
-      toggleAccessory: (id) =>
+      setAccessories: (ids) =>
         set((state) => ({
-          accessoryIds: state.accessoryIds.includes(id)
-            ? state.accessoryIds.filter((a) => a !== id)
-            : [...state.accessoryIds, id],
+          accessoryQuantities: Object.fromEntries(
+            ids.map((id) => [id, state.accessoryQuantities[id] ?? 1]),
+          ),
         })),
+      setAccessoryQuantity: (id, quantity) =>
+        set((state) => {
+          if (!(id in state.accessoryQuantities)) return state;
+          const qty = Math.max(1, Math.floor(quantity) || 1);
+          return {
+            accessoryQuantities: { ...state.accessoryQuantities, [id]: qty },
+          };
+        }),
       addExtraCost: () =>
         set((state) => ({
           extraCosts: [
@@ -97,6 +110,7 @@ export const useCalculatorStore = create<CalculatorState>()(
     }),
     {
       name: 'printcost.calculator',
+      version: 2,
       // Сохраняем только часто повторяющиеся настройки оборудования
       partialize: (state) => ({
         printerId: state.printerId,
@@ -105,11 +119,22 @@ export const useCalculatorStore = create<CalculatorState>()(
         includeElectricity: state.includeElectricity,
         includeDepreciation: state.includeDepreciation,
         equipmentLifetimeHours: state.equipmentLifetimeHours,
-        accessoryIds: state.accessoryIds,
+        accessoryQuantities: state.accessoryQuantities,
         currency: state.currency,
         materialId: state.materialId,
         filamentPricePerKg: state.filamentPricePerKg,
       }),
+      migrate: (persisted) => {
+        // v1: accessoryIds: string[] → v2: accessoryQuantities: Record<string, number>
+        const state = persisted as Record<string, unknown>;
+        if (Array.isArray(state.accessoryIds)) {
+          state.accessoryQuantities = Object.fromEntries(
+            (state.accessoryIds as string[]).map((id) => [id, 1]),
+          );
+          delete state.accessoryIds;
+        }
+        return state;
+      },
     },
   ),
 );
