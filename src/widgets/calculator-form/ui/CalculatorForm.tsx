@@ -309,7 +309,6 @@ export function CalculatorForm() {
           />
           <NumberInput
             label="Мин. цена продажи, ₽"
-            description="0 — без ограничения"
             min={0}
             value={state.minSalePrice || ''}
             placeholder="Например, 100"
