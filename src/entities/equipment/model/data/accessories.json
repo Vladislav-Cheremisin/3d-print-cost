@@ -1,0 +1,7 @@
+[
+  { "id": "filament-dryer-generic", "name": "Сушилка для филамента", "avgPowerWatts": 150, "priceRub": 4000 },
+  { "id": "heat-gun", "name": "Строительный фен", "avgPowerWatts": 1800, "priceRub": 2500 },
+  { "id": "uv-lamp", "name": "УФ-лампа (постобработка)", "avgPowerWatts": 60, "priceRub": 3000 },
+  { "id": "air-purifier", "name": "Воздушный фильтр / очиститель", "avgPowerWatts": 40, "priceRub": 6000 },
+  { "id": "enclosure-heater", "name": "Обогрев камеры", "avgPowerWatts": 300, "priceRub": 3500 }
+]

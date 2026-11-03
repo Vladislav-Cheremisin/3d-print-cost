@@ -1,0 +1,12 @@
+[
+  { "id": "pla", "name": "PLA", "defaultPricePerKgRub": 1800 },
+  { "id": "petg", "name": "PETG", "defaultPricePerKgRub": 2000 },
+  { "id": "abs", "name": "ABS", "defaultPricePerKgRub": 2000 },
+  { "id": "asa", "name": "ASA", "defaultPricePerKgRub": 2500 },
+  { "id": "tpu", "name": "TPU", "defaultPricePerKgRub": 3200 },
+  { "id": "pc", "name": "PC", "defaultPricePerKgRub": 3800 },
+  { "id": "pa", "name": "PA (нейлон)", "defaultPricePerKgRub": 4800 },
+  { "id": "pla-cf", "name": "PLA-CF (карбон)", "defaultPricePerKgRub": 4500 },
+  { "id": "hips", "name": "HIPS", "defaultPricePerKgRub": 2200 },
+  { "id": "other", "name": "Другой", "defaultPricePerKgRub": 2000 }
+]
