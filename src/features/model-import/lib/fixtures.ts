@@ -89,6 +89,24 @@ export function make3mfShuffledAttrs(): Uint8Array {
   return zipSync({ '3D/3Dmodel.model': strToU8(xml) });
 }
 
+/**
+ * 3MF с production-расширением: главный .model без сетки,
+ * геометрия в дочернем 3D/Objects/object_1.model (формат MakerWorld)
+ */
+export function make3mfSplitObjects(): Uint8Array {
+  const mesh = unzipSync(make3mf())['3D/3Dmodel.model'];
+  const main = strToU8(`<?xml version="1.0"?>
+<model xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06" requiredextensions="p">
+ <resources>
+  <object id="1" p:UUID="00010000-0000-0000-0000-000000000000"/>
+ </resources>
+</model>`);
+  return zipSync({
+    '3D/3dmodel.model': main,
+    '3D/Objects/object_1.model': mesh,
+  });
+}
+
 /** 3MF-проект слайсера: сетка + метаданные Bambu Studio / OrcaSlicer */
 export function make3mfSliced(): Uint8Array {
   const base = make3mf();

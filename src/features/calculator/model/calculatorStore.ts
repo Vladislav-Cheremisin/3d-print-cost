@@ -128,6 +128,7 @@ export const useCalculatorStore = create<CalculatorState>()(
         equipmentLifetimeHours: state.equipmentLifetimeHours,
         accessoryQuantities: state.accessoryQuantities,
         minSalePrice: state.minSalePrice,
+        markupPercent: state.markupPercent,
         currency: state.currency,
         materialId: state.materialId,
         filamentPricePerKg: state.filamentPricePerKg,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { make3mf, make3mfShuffledAttrs, make3mfSliced, makeAsciiStl, makeBinaryStl, CUBE_TRIANGLES } from './fixtures';
+import { make3mf, make3mfShuffledAttrs, make3mfSliced, make3mfSplitObjects, makeAsciiStl, makeBinaryStl, CUBE_TRIANGLES } from './fixtures';
 import { estimateWeightGrams } from './importModel';
 import { computeMeshVolume } from './meshVolume';
 import { parse3mf } from './parse3mf';
@@ -85,6 +85,11 @@ describe('parse3mf', () => {
 
   it('читает атрибуты в любом порядке и с префиксом неймспейса', () => {
     const { triangles } = parse3mf(make3mfShuffledAttrs());
+    expect(computeMeshVolume(triangles).volumeMm3).toBeCloseTo(1000, 5);
+  });
+
+  it('читает сетку из дочерних .model (production-расширение, MakerWorld)', () => {
+    const { triangles } = parse3mf(make3mfSplitObjects());
     expect(computeMeshVolume(triangles).volumeMm3).toBeCloseTo(1000, 5);
   });
 
