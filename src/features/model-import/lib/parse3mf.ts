@@ -83,21 +83,36 @@ export function parse3mf(bytes: Uint8Array): Parsed3mf {
   }
   const xml = new TextDecoder().decode(modelBytes);
 
+  // Читаем числовой атрибут из тега: порядок атрибутов в файлах
+  // разных экспортёров не гарантирован, поэтому ищем каждый отдельно
+  const readAttr = (tag: string, name: string): number | null => {
+    const match = tag.match(
+      new RegExp(`(?:^|[\\s"'])${name}\\s*=\\s*"(-?[\\d.eE+]+)"`),
+    );
+    return match ? Number(match[1]) : null;
+  };
+
+  // Учитываем возможные XML-префиксы неймспейсов (<m:vertex ...>)
   const vertices: [number, number, number][] = [];
-  const vertexRe =
-    /<vertex\s[^>]*x="(-?[\d.eE+]+)"\s+y="(-?[\d.eE+]+)"\s+z="(-?[\d.eE+]+)"[^>]*\/>/g;
+  const vertexRe = /<(?:[\w.-]+:)?vertex\b[^>]*>/g;
   let match: RegExpExecArray | null;
   while ((match = vertexRe.exec(xml)) !== null) {
-    vertices.push([Number(match[1]), Number(match[2]), Number(match[3])]);
+    const x = readAttr(match[0], 'x');
+    const y = readAttr(match[0], 'y');
+    const z = readAttr(match[0], 'z');
+    if (x !== null && y !== null && z !== null) vertices.push([x, y, z]);
   }
 
   const triangles: Triangle[] = [];
-  const triRe =
-    /<triangle\s[^>]*v1="(\d+)"\s+v2="(\d+)"\s+v3="(\d+)"[^>]*\/>/g;
+  const triRe = /<(?:[\w.-]+:)?triangle\b[^>]*>/g;
   while ((match = triRe.exec(xml)) !== null) {
-    const v0 = vertices[Number(match[1])];
-    const v1 = vertices[Number(match[2])];
-    const v2 = vertices[Number(match[3])];
+    const i1 = readAttr(match[0], 'v1');
+    const i2 = readAttr(match[0], 'v2');
+    const i3 = readAttr(match[0], 'v3');
+    if (i1 === null || i2 === null || i3 === null) continue;
+    const v0 = vertices[i1];
+    const v1 = vertices[i2];
+    const v2 = vertices[i3];
     if (v0 && v1 && v2) triangles.push({ v0, v1, v2 });
   }
 

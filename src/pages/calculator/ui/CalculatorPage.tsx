@@ -5,6 +5,7 @@ import {
   SimpleGrid,
   Text,
   Title,
+  useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
 import { CalculationResult } from '@/widgets/calculation-result';
@@ -28,8 +29,13 @@ function MoonIcon() {
 }
 
 export function CalculatorPage() {
-  const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { setColorScheme } = useMantineColorScheme();
+  // Вычисленная схема: при colorScheme = 'auto' показывает реальную
+  // (системную) тему — иконка и первый клик работают корректно
+  const computed = useComputedColorScheme('light', {
+    getInitialValueInEffect: true,
+  });
+  const isDark = computed === 'dark';
 
   return (
     <Container size="xl" py="xl">

@@ -1,17 +1,9 @@
 import { useRef, useState } from 'react';
-import {
-  Button,
-  Group,
-  NumberInput,
-  Stack,
-  Text,
-  TextInput,
-} from '@mantine/core';
+import { Button, Group, NumberInput, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { materials } from '@/entities/material';
 import { useCalculatorStore } from '@/features/calculator';
 import { importModelFile, type ModelImportResult } from '../lib/importModel';
-import { importFromMakerWorld } from '../lib/importFromUrl';
 
 function showError(message: string) {
   notifications.show({ color: 'red', title: 'Импорт модели', message });
@@ -20,14 +12,13 @@ function showError(message: string) {
 export function ModelImportSection() {
   const materialId = useCalculatorStore((s) => s.materialId);
   const infillPercent = useCalculatorStore((s) => s.infillPercent);
+  const nozzleDiameter = useCalculatorStore((s) => s.nozzleDiameter);
   const setField = useCalculatorStore((s) => s.setField);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loadedModel, setLoadedModel] = useState<ModelImportResult | null>(
     null,
   );
-  const [url, setUrl] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const density =
     materials.find((m) => m.id === materialId)?.densityGCm3 ?? 1.24;
@@ -38,7 +29,12 @@ export function ModelImportSection() {
     if (!file) return;
 
     try {
-      const result = await importModelFile(file, density, infillPercent / 100);
+      const result = await importModelFile(
+        file,
+        density,
+        infillPercent / 100,
+        nozzleDiameter,
+      );
       setField('partWeightGrams', result.weightGrams);
       // из слайсера время точное — берём; иначе сбрасываем для переоценки
       setField('printTimeHours', result.printTimeHours);
@@ -57,36 +53,6 @@ export function ModelImportSection() {
     } catch (error) {
       setLoadedModel(null);
       showError(error instanceof Error ? error.message : 'Неизвестная ошибка');
-    }
-  };
-
-  const handleUrl = async () => {
-    if (!url.trim()) return;
-    setLoading(true);
-    try {
-      const info = await importFromMakerWorld(url);
-      if (info.weightGrams) setField('partWeightGrams', info.weightGrams);
-      if (info.printTimeHours) {
-        setField('printTimeHours', Math.round(info.printTimeHours * 100) / 100);
-      }
-      if (!info.weightGrams && !info.printTimeHours) {
-        showError(
-          'Страница загрузилась, но вес и время не нашлись. ' +
-            'Скачайте STL/3MF и загрузите файлом.',
-        );
-        return;
-      }
-      notifications.show({
-        color: 'teal',
-        title: info.title ?? 'Модель с MakerWorld',
-        message: `Вес ≈ ${info.weightGrams ?? '—'} г, время ≈ ${
-          info.printTimeHours?.toFixed(1) ?? '—'
-        } ч (данные со страницы, ориентировочно)`,
-      });
-    } catch (error) {
-      showError(error instanceof Error ? error.message : 'Неизвестная ошибка');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -124,25 +90,6 @@ export function ModelImportSection() {
           {loadedModel.fromSlicer ? ' (точный, из слайсера)' : ''}
         </Text>
       )}
-
-      <TextInput
-        label="Ссылка на MakerWorld"
-        placeholder="https://makerworld.com/..."
-        value={url}
-        onChange={(e) => setUrl(e.currentTarget.value)}
-        rightSection={
-          <Button
-            size="compact-sm"
-            variant="light"
-            loading={loading}
-            onClick={handleUrl}
-            disabled={!url.trim()}
-          >
-            Загрузить
-          </Button>
-        }
-        rightSectionWidth={90}
-      />
     </Stack>
   );
 }

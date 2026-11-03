@@ -114,39 +114,38 @@ export function CalculatorForm() {
               value={String(state.nozzleDiameter)}
               onChange={(v) => v && setField('nozzleDiameter', Number(v))}
             />
-            <NumberInput
-              label="Время печати из слайсера, ч"
-              description="Пусто — оценим по весу, материалу и соплу"
-              min={0}
-              decimalScale={2}
-              placeholder="Например, 8.5"
-              value={state.printTimeHours ?? ''}
-              onChange={(v) =>
-                setField('printTimeHours', v === '' ? null : Number(v))
-              }
-            />
-            <div>
+            <Stack gap="xs">
+              <NumberInput
+                label="Время печати из слайсера, ч"
+                min={0}
+                decimalScale={2}
+                placeholder="Пусто — оценим сами"
+                value={state.printTimeHours ?? ''}
+                onChange={(v) =>
+                  setField('printTimeHours', v === '' ? null : Number(v))
+                }
+              />
               <Switch
                 label="Многоцветная печать"
                 checked={state.isMulticolor}
                 onChange={(e) =>
                   setField('isMulticolor', e.currentTarget.checked)
                 }
-                mt="md"
               />
-              {state.isMulticolor && (
-                <NumberInput
-                  label="Отходы на смену филамента, %"
-                  min={0}
-                  max={300}
-                  value={state.multicolorWastePercent}
-                  onChange={(v) =>
-                    setField('multicolorWastePercent', Number(v) || 0)
-                  }
-                  mt="xs"
-                />
-              )}
-            </div>
+            </Stack>
+            {state.isMulticolor ? (
+              <NumberInput
+                label="Отходы на смену филамента, %"
+                min={0}
+                max={300}
+                value={state.multicolorWastePercent}
+                onChange={(v) =>
+                  setField('multicolorWastePercent', Number(v) || 0)
+                }
+              />
+            ) : (
+              <div />
+            )}
           </SimpleGrid>
         </div>
 

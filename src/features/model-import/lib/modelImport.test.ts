@@ -1,6 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-import { make3mf, make3mfSliced, makeAsciiStl, makeBinaryStl, CUBE_TRIANGLES } from './fixtures';
-import { importFromMakerWorld } from './importFromUrl';
+import { describe, expect, it } from 'vitest';
+import { make3mf, make3mfShuffledAttrs, make3mfSliced, makeAsciiStl, makeBinaryStl, CUBE_TRIANGLES } from './fixtures';
 import { estimateWeightGrams } from './importModel';
 import { computeMeshVolume } from './meshVolume';
 import { parse3mf } from './parse3mf';
@@ -13,6 +12,13 @@ describe('computeMeshVolume', () => {
     );
     expect(mesh.volumeMm3).toBeCloseTo(1000, 5);
     expect(mesh.triangleCount).toBe(12);
+  });
+
+  it('считает площадь поверхности куба: 6 граней × 100 мм² = 600 мм²', () => {
+    const mesh = computeMeshVolume(
+      CUBE_TRIANGLES.map(([v0, v1, v2]) => ({ v0, v1, v2 })),
+    );
+    expect(mesh.surfaceAreaMm2).toBeCloseTo(600, 5);
   });
 });
 
@@ -77,6 +83,11 @@ describe('parse3mf', () => {
     expect(slicer!.infillPercent).toBe(15);
   });
 
+  it('читает атрибуты в любом порядке и с префиксом неймспейса', () => {
+    const { triangles } = parse3mf(make3mfShuffledAttrs());
+    expect(computeMeshVolume(triangles).volumeMm3).toBeCloseTo(1000, 5);
+  });
+
   it('бросает ошибку, если это не ZIP', () => {
     expect(() => parse3mf(new Uint8Array([0, 1, 2, 3]))).toThrow(
       /не ZIP/,
@@ -85,13 +96,30 @@ describe('parse3mf', () => {
 });
 
 describe('estimateWeightGrams', () => {
-  it('куб 1000 мм³ из PLA при заполнении 35% ≈ 0.4 г', () => {
-    // 1 см³ × 1.24 г/см³ × 0.35 = 0.434 → округление до 0.1 г
-    expect(estimateWeightGrams(1000, 1.24)).toBe(0.4);
-  });
+  // Куб 10 мм: объём 1000 мм³, поверхность 600 мм²
+  // Оболочка 1.2 мм: 600 × 1.2 = 720 мм³, внутренность 280 мм³
 
   it('100% заполнение — полный вес объёма', () => {
-    expect(estimateWeightGrams(1000, 1.24, 1)).toBe(1.2);
+    // (720 + 280 × 1) × 1.24 / 1000 = 1.24 → 1.2
+    expect(estimateWeightGrams(1000, 600, 1.24, 1)).toBe(1.2);
+  });
+
+  it('мелкая деталь с 35% заполнения: стенки весят больше инфилла', () => {
+    // (720 + 280 × 0.35) × 1.24 / 1000 = 818 × 1.24 / 1000 ≈ 1.0
+    expect(estimateWeightGrams(1000, 600, 1.24, 0.35)).toBe(1.0);
+  });
+
+  it('крупная деталь: вес ближе к доле заполнения от объёма', () => {
+    // Куб 100 мм: объём 1 000 000 мм³, поверхность 60 000 мм²
+    // Оболочка: 72 000 мм³, внутренность 928 000 мм³
+    // (72 000 + 928 000 × 0.15) × 1.24 / 1000 = 261.888 → 261.9
+    expect(estimateWeightGrams(1_000_000, 60_000, 1.24, 0.15)).toBe(261.9);
+  });
+
+  it('оболочка не может превысить объём модели', () => {
+    // Тонкая пластина: оболочка ограничивается объёмом
+    const w = estimateWeightGrams(100, 500, 1.24, 0.35);
+    expect(w).toBeCloseTo(estimateWeightGrams(100, 0, 1.24, 1), 5);
   });
 });
 
@@ -122,45 +150,7 @@ describe('importModelFile', () => {
     const result = await importModelFile(fakeFile('model.3mf', make3mf()), 1.24);
     expect(result.fromSlicer).toBe(false);
     expect(result.printTimeHours).toBeNull();
-    expect(result.weightGrams).toBe(0.4); // 1000 мм³ × 1.24 × 0.35
-  });
-});
-
-describe('importFromMakerWorld', () => {
-  it('отклоняет чужие домены', async () => {
-    await expect(
-      importFromMakerWorld('https://evil.com/model'),
-    ).rejects.toThrow(/makerworld/);
-  });
-
-  it('извлекает вес и время из __NEXT_DATA__', async () => {
-    const nextData = {
-      props: {
-        pageProps: {
-          design: {
-            title: 'Benchy',
-            profile: { filamentWeight: 45.5, printTime: 3600 },
-          },
-        },
-      },
-    };
-    const html = `<html><script id="__NEXT_DATA__" type="application/json">${JSON.stringify(nextData)}</script></html>`;
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(html, { status: 200 }),
-    );
-    const info = await importFromMakerWorld(
-      'https://makerworld.com/en/models/12345',
-      fetchMock,
-    );
-    expect(info.title).toBe('Benchy');
-    expect(info.weightGrams).toBe(45.5);
-    expect(info.printTimeHours).toBe(1);
-  });
-
-  it('бросает ошибку при недоступности страницы', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response('', { status: 500 }));
-    await expect(
-      importFromMakerWorld('https://makerworld.com/en/models/1', fetchMock),
-    ).rejects.toThrow(/HTTP 500/);
+    // оболочка 720 мм³ + инфилл 280 × 0.35 мм³ → ≈ 1.0 г
+    expect(result.weightGrams).toBe(1.0);
   });
 });

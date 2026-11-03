@@ -70,6 +70,25 @@ export function make3mf(): Uint8Array {
   return zipSync({ '3D/3Dmodel.model': strToU8(xml) });
 }
 
+/**
+ * 3MF от «капризного» экспортёра: атрибуты не в каноничном порядке,
+ * теги с префиксом неймспейса, лишние атрибуты
+ */
+export function make3mfShuffledAttrs(): Uint8Array {
+  const base = unzipSync(make3mf())['3D/3Dmodel.model'];
+  let xml = new TextDecoder().decode(base);
+  xml = xml
+    .replaceAll(
+      /<vertex x="([\d.]+)" y="([\d.]+)" z="([\d.]+)"\/>/g,
+      '<m:vertex z="$3" x="$1" y="$2" pid="0"/>',
+    )
+    .replaceAll(
+      /<triangle v1="(\d+)" v2="(\d+)" v3="(\d+)"\/>/g,
+      '<m:triangle v3="$3" v1="$1" v2="$2"/>',
+    );
+  return zipSync({ '3D/3Dmodel.model': strToU8(xml) });
+}
+
 /** 3MF-проект слайсера: сетка + метаданные Bambu Studio / OrcaSlicer */
 export function make3mfSliced(): Uint8Array {
   const base = make3mf();
