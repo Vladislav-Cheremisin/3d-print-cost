@@ -18,6 +18,7 @@ describe('справочник принтеров', () => {
       expect(p.brand.length).toBeGreaterThan(0);
       expect(p.avgPowerWatts).toBeGreaterThan(0);
       expect(p.priceRub).toBeGreaterThan(0);
+      expect(p.lifetimeHours).toBeGreaterThan(0);
       expect(typeof p.multicolorCapable).toBe('boolean');
     }
   });

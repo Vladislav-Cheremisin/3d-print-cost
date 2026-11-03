@@ -7,6 +7,8 @@ export interface Printer {
   avgPowerWatts: number;
   /** Ориентировочная цена, ₽ */
   priceRub: number;
+  /** Ориентировочный ресурс механики до капитального обслуживания, часов */
+  lifetimeHours: number;
   /** Поддержка многоцветной печати из коробки (AMS/AMS lite) */
   multicolorCapable: boolean;
 }

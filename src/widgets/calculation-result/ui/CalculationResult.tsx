@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Divider,
   Group,
   Paper,
@@ -76,6 +77,14 @@ export function CalculationResult() {
       <Stack gap="sm">
         <Title order={3}>Себестоимость</Title>
 
+        {(state.includeElectricity || state.includeDepreciation) &&
+          !state.printTimeHours && (
+            <Alert color="yellow" variant="light" title="Нет времени печати">
+              Укажите время печати из слайсера — без него электроэнергия и
+              амортизация не учитываются в расчёте.
+            </Alert>
+          )}
+
         <Row label="Материал" amount={toSelected(resultRub.material)} currency={currency} />
         {resultRub.electricity > 0 && (
           <Row
@@ -116,15 +125,30 @@ export function CalculationResult() {
           />
         )}
 
-        <Paper bg="teal.0" p="md" radius="md" mt="xs">
+        <Paper
+          p="md"
+          radius="md"
+          mt="xs"
+          style={{
+            background:
+              'light-dark(var(--mantine-color-teal-0), var(--mantine-color-dark-6))',
+          }}
+        >
           <Group justify="space-between" align="center">
             <Group gap="xs">
               <ThemeIcon color="teal" variant="light" size="lg">
-                ₽
+                {CURRENCY_SYMBOLS[currency]}
               </ThemeIcon>
               <Text fw={600}>Цена для клиента</Text>
             </Group>
-            <Text fw={700} size="xl" c="teal.8">
+            <Text
+              fw={700}
+              size="xl"
+              style={{
+                color:
+                  'light-dark(var(--mantine-color-teal-8), var(--mantine-color-teal-3))',
+              }}
+            >
               {formatMoney(toSelected(resultRub.priceWithMarkup), currency)}
             </Text>
           </Group>

@@ -86,7 +86,14 @@ export function CalculatorForm() {
                 label: `${p.name} · ~${p.avgPowerWatts} Вт`,
               }))}
               value={state.printerId}
-              onChange={(v) => v && setField('printerId', v)}
+              onChange={(v) => {
+                if (!v) return;
+                setField('printerId', v);
+                const printer = printers.find((p) => p.id === v);
+                if (printer) {
+                  setField('equipmentLifetimeHours', printer.lifetimeHours);
+                }
+              }}
             />
             <Select
               label="Диаметр сопла, мм"
@@ -141,20 +148,21 @@ export function CalculatorForm() {
             </Accordion.Control>
             <Accordion.Panel>
               <Stack gap="md">
-                <Group align="flex-end" wrap="wrap">
-                  <Checkbox
-                    label="Учитывать электроэнергию"
-                    checked={state.includeElectricity}
-                    onChange={(e) =>
-                      setField('includeElectricity', e.currentTarget.checked)
-                    }
-                  />
+                <SimpleGrid cols={{ base: 1, sm: 2 }} verticalSpacing="xs">
+                  <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                    <Checkbox
+                      label="Учитывать электроэнергию"
+                      checked={state.includeElectricity}
+                      onChange={(e) =>
+                        setField('includeElectricity', e.currentTarget.checked)
+                      }
+                    />
+                  </div>
                   {state.includeElectricity && (
                     <NumberInput
                       label="Тариф, за кВт·ч"
                       min={0}
                       decimalScale={2}
-                      w={180}
                       value={state.electricityTariffPerKwh ?? ''}
                       onChange={(v) =>
                         setField(
@@ -164,29 +172,30 @@ export function CalculatorForm() {
                       }
                     />
                   )}
-                </Group>
+                </SimpleGrid>
 
-                <Group align="flex-end" wrap="wrap">
-                  <Checkbox
-                    label="Учитывать амортизацию оборудования"
-                    checked={state.includeDepreciation}
-                    onChange={(e) =>
-                      setField('includeDepreciation', e.currentTarget.checked)
-                    }
-                  />
+                <SimpleGrid cols={{ base: 1, sm: 2 }} verticalSpacing="xs">
+                  <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                    <Checkbox
+                      label="Учитывать амортизацию оборудования"
+                      checked={state.includeDepreciation}
+                      onChange={(e) =>
+                        setField('includeDepreciation', e.currentTarget.checked)
+                      }
+                    />
+                  </div>
                   {state.includeDepreciation && (
                     <NumberInput
                       label="Ресурс оборудования, ч"
                       min={1}
                       step={500}
-                      w={200}
                       value={state.equipmentLifetimeHours}
                       onChange={(v) =>
                         setField('equipmentLifetimeHours', Number(v) || 5000)
                       }
                     />
                   )}
-                </Group>
+                </SimpleGrid>
 
                 <MultiSelect
                   label="Доп. оборудование (фены, сушилки и т.п.)"
