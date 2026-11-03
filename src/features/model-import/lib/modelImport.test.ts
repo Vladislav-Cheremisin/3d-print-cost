@@ -50,9 +50,10 @@ describe('parseStl', () => {
   it('NaN-координаты дают понятную ошибку, а не NaN-объём', () => {
     const bytes = makeBinaryStl();
     const view = new DataView(bytes.buffer);
-    // портим все координаты
-    for (let o = 84; o < bytes.length - 2; o += 4) {
-      view.setFloat32(o, NaN, true);
+    // портим координаты каждого треугольника (нормаль остаётся)
+    for (let i = 0; i < 12; i++) {
+      const o = 84 + i * 50 + 12;
+      for (let c = 0; c < 9; c++) view.setFloat32(o + c * 4, NaN, true);
     }
     expect(() => parseStl(bytes)).toThrow(/координаты/);
   });
