@@ -23,6 +23,7 @@ import {
   NOZZLE_DIAMETERS,
   useCalculatorStore,
 } from '@/features/calculator';
+import { ModelImportSection } from '@/features/model-import';
 
 export function CalculatorForm() {
   const state = useCalculatorStore();
@@ -38,6 +39,15 @@ export function CalculatorForm() {
   return (
     <Paper withBorder p="md" radius="md">
       <Stack gap="lg">
+        <div>
+          <Title order={3} mb="sm">
+            Модель
+          </Title>
+          <ModelImportSection />
+        </div>
+
+        <Divider />
+
         <div>
           <Title order={3} mb="sm">
             Материал
