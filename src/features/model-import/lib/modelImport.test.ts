@@ -37,6 +37,25 @@ describe('parseStl', () => {
   it('бросает ошибку на битом файле', () => {
     expect(() => parseStl(new Uint8Array([1, 2, 3]))).toThrow();
   });
+
+  it('бинарный STL со словом "solid" в заголовке читается как бинарный', () => {
+    const bytes = makeBinaryStl();
+    // многие экспортёры пишут "solid" в 80-байтный заголовок бинарника
+    bytes.set(new TextEncoder().encode('solid exported by SomeSlicer'), 0);
+    const triangles = parseStl(bytes);
+    expect(triangles).toHaveLength(12);
+    expect(computeMeshVolume(triangles).volumeMm3).toBeCloseTo(1000, 5);
+  });
+
+  it('NaN-координаты дают понятную ошибку, а не NaN-объём', () => {
+    const bytes = makeBinaryStl();
+    const view = new DataView(bytes.buffer);
+    // портим все координаты
+    for (let o = 84; o < bytes.length - 2; o += 4) {
+      view.setFloat32(o, NaN, true);
+    }
+    expect(() => parseStl(bytes)).toThrow(/координаты/);
+  });
 });
 
 describe('parse3mf', () => {

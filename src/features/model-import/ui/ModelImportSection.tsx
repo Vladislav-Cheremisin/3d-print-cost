@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Button,
-  FileInput,
   Group,
   NumberInput,
   Stack,
+  Text,
   TextInput,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { materials } from '@/entities/material';
 import { useCalculatorStore } from '@/features/calculator';
-import { importModelFile } from '../lib/importModel';
+import { importModelFile, type ModelImportResult } from '../lib/importModel';
 import { importFromMakerWorld } from '../lib/importFromUrl';
 
 function showError(message: string) {
@@ -21,19 +21,28 @@ export function ModelImportSection() {
   const materialId = useCalculatorStore((s) => s.materialId);
   const infillPercent = useCalculatorStore((s) => s.infillPercent);
   const setField = useCalculatorStore((s) => s.setField);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [loadedModel, setLoadedModel] = useState<ModelImportResult | null>(
+    null,
+  );
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
   const density =
     materials.find((m) => m.id === materialId)?.densityGCm3 ?? 1.24;
 
-  const handleFile = async (file: File | null) => {
+  const handleFile = async (file: File | undefined) => {
+    // сбрасываем value, чтобы повторный выбор того же файла сработал
+    if (fileInputRef.current) fileInputRef.current.value = '';
     if (!file) return;
+
     try {
       const result = await importModelFile(file, density, infillPercent / 100);
       setField('partWeightGrams', result.weightGrams);
       // из слайсера время точное — берём; иначе сбрасываем для переоценки
       setField('printTimeHours', result.printTimeHours);
+      setLoadedModel(result);
       notifications.show({
         color: 'teal',
         title: result.fromSlicer
@@ -41,13 +50,12 @@ export function ModelImportSection() {
           : 'Модель загружена',
         message: result.fromSlicer
           ? `${result.fileName}: точный вес ${result.weightGrams} г` +
-            (result.printTimeHours
-              ? `, время ${result.printTimeHours} ч`
-              : '')
+            (result.printTimeHours ? `, время ${result.printTimeHours} ч` : '')
           : `${result.fileName}: объём ${Math.round(result.volumeMm3)} мм³, ` +
             `вес ≈ ${result.weightGrams} г (заполнение ${infillPercent}%)`,
       });
     } catch (error) {
+      setLoadedModel(null);
       showError(error instanceof Error ? error.message : 'Неизвестная ошибка');
     }
   };
@@ -84,40 +92,56 @@ export function ModelImportSection() {
 
   return (
     <Stack gap="xs">
-      <Group grow align="flex-start" wrap="wrap">
-        <FileInput
-          label="Файл модели"
-          placeholder="STL или 3MF"
-          accept=".stl,.3mf"
-          onChange={handleFile}
-        />
-        <TextInput
-          label="Ссылка на MakerWorld"
-          placeholder="https://makerworld.com/..."
-          value={url}
-          onChange={(e) => setUrl(e.currentTarget.value)}
-          rightSection={
-            <Button
-              size="compact-sm"
-              variant="light"
-              loading={loading}
-              onClick={handleUrl}
-              disabled={!url.trim()}
-            >
-              Загрузить
-            </Button>
-          }
-          rightSectionWidth={90}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".stl,.3mf"
+        hidden
+        onChange={(e) => handleFile(e.currentTarget.files?.[0])}
+      />
+      <Group align="flex-end" wrap="wrap">
+        <Button
+          variant="light"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          Загрузить файл модели (STL или 3MF)
+        </Button>
+        <NumberInput
+          label="Заполнение (infill), %"
+          min={5}
+          max={100}
+          w={200}
+          value={infillPercent}
+          onChange={(v) => setField('infillPercent', Number(v) || 35)}
         />
       </Group>
-      <NumberInput
-        label="Заполнение (infill), %"
-        description="Для оценки веса из файла; если 3MF сохранён слайсером — вес и время берутся точные из файла"
-        min={5}
-        max={100}
-        w={220}
-        value={infillPercent}
-        onChange={(v) => setField('infillPercent', Number(v) || 35)}
+      {loadedModel && (
+        <Text size="xs" c="dimmed">
+          Загружено: {loadedModel.fileName} ·{' '}
+          {loadedModel.triangleCount.toLocaleString('ru-RU')} треугольников ·
+          вес {loadedModel.fromSlicer ? '' : '≈ '}
+          {loadedModel.weightGrams} г
+          {loadedModel.fromSlicer ? ' (точный, из слайсера)' : ''}
+        </Text>
+      )}
+
+      <TextInput
+        label="Ссылка на MakerWorld"
+        placeholder="https://makerworld.com/..."
+        value={url}
+        onChange={(e) => setUrl(e.currentTarget.value)}
+        rightSection={
+          <Button
+            size="compact-sm"
+            variant="light"
+            loading={loading}
+            onClick={handleUrl}
+            disabled={!url.trim()}
+          >
+            Загрузить
+          </Button>
+        }
+        rightSectionWidth={90}
       />
     </Stack>
   );

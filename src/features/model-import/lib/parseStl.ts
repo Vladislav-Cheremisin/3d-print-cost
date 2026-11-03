@@ -4,13 +4,25 @@ const HEADER_BYTES = 84;
 const TRIANGLE_BYTES = 50;
 
 function isLikelyAscii(bytes: Uint8Array): boolean {
-  // ASCII STL начинается со слова "solid" и не является бинарником по длине
-  const head = new TextDecoder('ascii').decode(bytes.slice(0, 5));
-  if (head !== 'solid') return false;
-  const view = new DataView(bytes.buffer, bytes.byteOffset);
-  if (bytes.length < HEADER_BYTES) return true;
-  const declared = view.getUint32(80, true);
-  return bytes.length !== HEADER_BYTES + declared * TRIANGLE_BYTES;
+  // Бинарные STL тоже могут начинаться со слова "solid" в заголовке,
+  // поэтому надёжнее искать текстовые ключевые слова ASCII-формата
+  const head = new TextDecoder('ascii', { fatal: false }).decode(
+    bytes.slice(0, 512),
+  );
+  if (!head.startsWith('solid')) return false;
+  return /\bfacet\b|\bvertex\b/.test(head);
+}
+
+function validateTriangles(triangles: Triangle[]): Triangle[] {
+  const valid = triangles.filter((t) =>
+    [...t.v0, ...t.v1, ...t.v2].every(Number.isFinite),
+  );
+  if (valid.length === 0) {
+    throw new Error(
+      'Не удалось прочитать геометрию: координаты треугольников некорректны',
+    );
+  }
+  return valid;
 }
 
 function parseBinary(bytes: Uint8Array): Triangle[] {
@@ -58,7 +70,8 @@ function parseAscii(text: string): Triangle[] {
 /** Разбирает STL (бинарный или ASCII) в список треугольников */
 export function parseStl(bytes: Uint8Array): Triangle[] {
   if (isLikelyAscii(bytes)) {
-    return parseAscii(new TextDecoder().decode(bytes));
+    const triangles = parseAscii(new TextDecoder().decode(bytes));
+    return validateTriangles(triangles);
   }
-  return parseBinary(bytes);
+  return validateTriangles(parseBinary(bytes));
 }

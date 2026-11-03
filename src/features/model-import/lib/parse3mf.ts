@@ -69,9 +69,17 @@ export function parse3mf(bytes: Uint8Array): Parsed3mf {
   } catch {
     throw new Error('Не удалось распаковать 3MF: это не ZIP-архив');
   }
-  const modelBytes = files[MODEL_PATH];
+  // Стандартный путь — 3D/3Dmodel.model, но разные экспортёры
+  // могут менять регистр или вкладывать подкаталоги
+  const modelKey =
+    Object.keys(files).find((k) => k.toLowerCase() === MODEL_PATH.toLowerCase()) ??
+    Object.keys(files).find((k) => k.toLowerCase().endsWith('.model'));
+  const modelBytes = modelKey ? files[modelKey] : undefined;
   if (!modelBytes) {
-    throw new Error(`В архиве нет ${MODEL_PATH}`);
+    throw new Error(
+      'В архиве не найден файл модели (.model). ' +
+        'Возможно, это не 3MF-модель, а проект другого формата',
+    );
   }
   const xml = new TextDecoder().decode(modelBytes);
 
@@ -98,11 +106,16 @@ export function parse3mf(bytes: Uint8Array): Parsed3mf {
   }
 
   // Данные слайсера (если 3MF — проект Bambu Studio / OrcaSlicer)
+  const findMeta = (suffix: string) =>
+    Object.entries(files).find(([k]) =>
+      k.toLowerCase().endsWith(suffix),
+    )?.[1];
+
   let slicer: SlicerInfo | null = null;
-  const sliceInfoBytes = files[SLICE_INFO_PATH];
+  const sliceInfoBytes = findMeta(SLICE_INFO_PATH.toLowerCase());
   if (sliceInfoBytes) {
     slicer = parseSlicerInfo(new TextDecoder().decode(sliceInfoBytes));
-    const settingsBytes = files[PROJECT_SETTINGS_PATH];
+    const settingsBytes = findMeta(PROJECT_SETTINGS_PATH.toLowerCase());
     if (settingsBytes) {
       slicer.infillPercent = parseInfillPercent(
         new TextDecoder().decode(settingsBytes),

@@ -6,8 +6,13 @@ export interface MakerWorldModelInfo {
   printTimeHours: number | null;
 }
 
-// CORS не даёт запросить MakerWorld напрямую из браузера — идём через прокси
-const PROXY = 'https://api.allorigins.win/raw?url=';
+// CORS не даёт запросить MakerWorld напрямую из браузера — идём через
+// публичные прокси, перебирая по очереди (доступность у них плавающая)
+const PROXIES: Array<(url: string) => string> = [
+  (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
 
 /** Извлекает JSON из <script id="__NEXT_DATA__"> страницы */
 function extractNextData(html: string): unknown {
@@ -73,11 +78,29 @@ export async function importFromMakerWorld(
   if (!/^https?:\/\/(www\.)?makerworld\.com\//.test(url.trim())) {
     throw new Error('Поддерживаются только ссылки на makerworld.com');
   }
-  const response = await fetchFn(PROXY + encodeURIComponent(url.trim()));
-  if (!response.ok) {
-    throw new Error(`Не удалось загрузить страницу (HTTP ${response.status})`);
+
+  const target = url.trim();
+  let html: string | null = null;
+  let lastError = 'все прокси недоступны';
+  for (const makeProxyUrl of PROXIES) {
+    try {
+      const response = await fetchFn(makeProxyUrl(target));
+      if (!response.ok) {
+        lastError = `HTTP ${response.status}`;
+        continue;
+      }
+      html = await response.text();
+      break;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
   }
-  const html = await response.text();
+  if (html === null) {
+    throw new Error(
+      `Не удалось загрузить страницу MakerWorld (${lastError}). ` +
+        'Попробуйте позже или загрузите файл модели напрямую',
+    );
+  }
   const data = extractNextData(html);
   if (!data) {
     throw new Error('Не удалось разобрать данные страницы');
